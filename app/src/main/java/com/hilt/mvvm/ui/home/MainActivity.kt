@@ -40,6 +40,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.hilt.mvvm.data.entities.Photos
 import com.hilt.mvvm.ui.appnavigation.Screen
+import com.hilt.mvvm.ui.details.PhotoDetails
 import com.hilt.mvvm.ui.home.viewmodel.PhotosViewModel
 import com.hilt.mvvm.ui.theme.MVVMHILTTheme
 import com.hilt.mvvm.utils.Resource

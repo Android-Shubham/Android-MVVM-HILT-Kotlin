@@ -1,4 +1,4 @@
-package com.hilt.mvvm.ui.home
+package com.hilt.mvvm.ui.details
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
