@@ -39,6 +39,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.hilt.mvvm.data.entities.Photos
+import com.hilt.mvvm.ui.appnavigation.Screen
 import com.hilt.mvvm.ui.home.viewmodel.PhotosViewModel
 import com.hilt.mvvm.ui.theme.MVVMHILTTheme
 import com.hilt.mvvm.utils.Resource
@@ -46,7 +47,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val viewModel: PhotosViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -55,39 +56,96 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
-                    PhotosApp()
-                    //Greeting()
+                    AppNavGraph()
                 }
             }
         }
     }
 
     @Composable
-    fun PhotosApp() {
+    fun AppNavGraph() {
         val navController = rememberNavController()
-        NavHost(navController = navController, startDestination = "list") {
-            composable(route = "list") {
-                Greeting(navController = navController)
+        val viewModel: PhotosViewModel by viewModels()
+        NavHost(navController = navController, startDestination = Screen.List.route) {
+            composable(route = Screen.List.route) {
+                PhotoList(navController = navController, viewModel)
             }
 
-            composable(route = "details") {
-                Details()
+            composable(route = Screen.Details.route) {
+                PhotoDetails(viewModel)
             }
         }
     }
 
+
     @Composable
-    fun Details() {
-        Text(
-            text = "Details Page",
-            modifier = Modifier.padding(start = 8.dp),
-            color = Color.Black,
-            fontWeight = FontWeight.Bold
-        )
+    fun PhotoList(navController: NavHostController, viewModel: PhotosViewModel) {
+        val isMapLoading = remember { mutableStateOf(true) }
+
+        val favourites = remember { mutableStateListOf<Photos>() }
+
+        getData(favourites, isMapLoading, viewModel)
+
+
+        LazyColumn {
+            items(favourites) { item ->
+                RenderListItem(item, navController, viewModel)
+            }
+        }
+
+        if (isMapLoading.value) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .background(Color.White)
+                    .fillMaxSize()
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+
+    }
+
+    @Composable
+    private fun RenderListItem(
+        photos: Photos,
+        navController: NavHostController,
+        viewModel: PhotosViewModel
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 0.dp)
+        ) {
+            Card(modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    viewModel.clickedPhoto = photos
+                    navController.navigate(Screen.Details.route)
+                }) {
+                Row(modifier = Modifier.padding(12.dp)) {
+                    AsyncImage(
+                        model = photos.thumbnailUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .height(100.dp)
+                            .width(100.dp)
+                    )
+                    Text(
+                        text = photos.title,
+                        modifier = Modifier.padding(start = 8.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
     }
 
     private fun getData(
-        favourites: SnapshotStateList<Photos>, isMapLoading: MutableState<Boolean>
+        favourites: SnapshotStateList<Photos>,
+        isMapLoading: MutableState<Boolean>,
+        viewModel: PhotosViewModel
     ) {
         viewModel.characters.observe(this) {
             when (it.status) {
@@ -110,68 +168,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun Greeting(navController: NavHostController) {
-        val isMapLoading = remember { mutableStateOf(true) }
-
-        val favourites = remember { mutableStateListOf<Photos>() }
-
-        getData(favourites, isMapLoading)
-
-
-        LazyColumn {
-            items(favourites) { item ->
-                RenderListItem(item, navController)
-            }
-        }
-
-        if (isMapLoading.value) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .background(Color.White)
-                    .fillMaxSize()
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-
-
-    }
-
-    @Composable
-    private fun RenderListItem(
-        photos: Photos,
-        navController: NavHostController
-    ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 0.dp)
-        ) {
-            Card(modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    navController.navigate("details")
-                }) {
-                Row(modifier = Modifier.padding(12.dp)) {
-                    AsyncImage(
-                        model = photos.thumbnailUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .height(100.dp)
-                            .width(100.dp)
-                    )
-                    Text(
-                        text = photos.title,
-                        modifier = Modifier.padding(start = 8.dp),
-                        color = Color.Black,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
 
 }
 
